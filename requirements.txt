@@ -1,0 +1,25 @@
+# --- Core Jupyter ---
+jupyterlab
+ipykernel
+
+# --- Numeric / DS core ---
+numpy
+pandas
+scipy
+matplotlib
+scikit-learn
+
+# --- Geospatial (Python via pip, NOT linking to GDAL directly) ---
+xarray
+rioxarray            # depends on rasterio (which we installed via APT)
+cfgrib               # xarray GRIB backend (uses system ecCodes)
+geopandas
+
+# --- Columnar / DB ---
+pyarrow
+duckdb
+sqlalchemy
+geoalchemy2
+
+# --- API
+fastapi
