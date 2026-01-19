@@ -20,6 +20,8 @@ pyarrow
 duckdb
 sqlalchemy
 geoalchemy2
+sqlmodel
+psycopg2
 
 # --- API
 fastapi

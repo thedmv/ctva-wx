@@ -19,6 +19,9 @@ services:
 
   dev:
     image: cwx
+    container_name: debug
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${DB_PORT}/${POSTGRES_DB}
     volumes:
       - .:/code/
     ports:
