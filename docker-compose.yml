@@ -55,7 +55,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: ["python", "/code/src/main.py", ">>", "log.out"]
+    command: ["bash", "-c", "python -u /code/src/main.py > /code/src/log.out"]
 
   app:
     image: cwx

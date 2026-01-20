@@ -19,7 +19,7 @@ def read_root():
     return {"status": "ok", "message": "Weather Station API"}
 
 
-@app.get("/weather")
+@app.get("/api/weather")
 def get_weather_data(
     site_id:    str            = Query(..., description = "Weather station ID"),
     start_date: Optional[date] = Query(None, description = "Start date (YYYYMMDD)"), # FastAPI converts to date obj
@@ -86,7 +86,7 @@ def get_weather_data(
         }
     }
 
-@app.get("/sites")
+@app.get("/api/sites")
 def get_sites(db: Session = Depends(get_db)):
     """
     Get the list of the unique Weather station ID's in the database tables.
@@ -99,7 +99,7 @@ def get_sites(db: Session = Depends(get_db)):
         "count": len(sites)
     }
 
-@app.get("/weather/stats")
+@app.get("/api/weather/stats")
 def get_site_stats(
     site_id:    str            = Query(..., description = "Weather station ID"),
     start_year: Optional[int] = Query(None, description = "Start year (YYYY)"),

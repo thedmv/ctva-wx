@@ -2,7 +2,7 @@ import os
 from sqlmodel import SQLModel, create_engine, Session
 
 # Create db engine
-engine = create_engine(os.environ["DATABASE_URL"], echo = False)
+engine = create_engine(os.environ["DATABASE_URL"], echo = True)
 
 def create_db_and_tables():
     """

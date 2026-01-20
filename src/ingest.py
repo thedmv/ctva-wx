@@ -9,7 +9,8 @@ from sqlalchemy import insert # optimal for larger datasets
 
 def ingest_wxdata():
     """
-    Ingest data files for /code/wx_data. See config.py for paths
+    Ingest data files for /code/wx_data. Create the summary statistics table. 
+    See config.py for paths
     """
     cols = [k for k in WxTable.model_fields.keys()]
     with Session(engine) as session:
