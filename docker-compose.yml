@@ -18,6 +18,9 @@ services:
       timeout: 10s
 
   dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: cwx
     container_name: debug
     environment:
@@ -40,5 +43,33 @@ services:
       db:
         condition: service_healthy
 
+  ingest:
+    image: cwx
+    container_name: ingest
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${DB_PORT}/${POSTGRES_DB}
+    volumes:
+      - .:/code/
+    ports:
+      - "5001:5001"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["python", "/code/src/main.py", ">>", "log.out"]
+
+  app:
+    image: cwx
+    container_name: app
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${DB_PORT}/${POSTGRES_DB}
+      PYTHONPATH: /code/src
+    volumes:
+      - .:/code/
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["fastapi", "run", "src/app.py", "--port", "8000"]
 volumes:
   postgres_db:

@@ -24,4 +24,4 @@ sqlmodel
 psycopg2
 
 # --- API
-fastapi
+fastapi[standard]
