@@ -6,3 +6,4 @@ venv/
 .vscode/
 .mypy_cache/
 .ipynb_checkpoints/
+NOTES.md

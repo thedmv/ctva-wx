@@ -30,6 +30,7 @@ def ingest_wxdata():
                             tmin_yearly   = ("tmin", "mean"),
                             precip_yearly = ("precip", "sum") )\
                         .reset_index()
+
             # Match data model with units and data types
             DFstats["tmax_yearly"]   = DFstats["tmax_yearly"] / 10 # tenths of C --> C
             DFstats["tmin_yearly"]   = DFstats["tmin_yearly"] / 10 # tenths of C --> C
@@ -45,8 +46,8 @@ def ingest_wxdata():
                             .on_conflict_do_nothing(
                                 index_elements = ["site_id", "year"]
                             )
-                session.execute(ins_stats)
-                total_stats_rows += len(stats_records)
+                result_stats = session.execute(ins_stats)
+                total_stats_rows += result_stats.rowcount or 0 # increment total row count
             
             # Insert WxTable
             DF = DF.replace(pd.NA, None)
@@ -57,8 +58,8 @@ def ingest_wxdata():
                         .on_conflict_do_nothing(
                             index_elements = ["site_id", "date"]
                             )
-                session.execute(ins_wx)
-                total_wx_rows += len(wx_records)
+                result_wx = session.execute(ins_wx)
+                total_wx_rows += result_wx.rowcount or 0 # increment
         
             session.commit()
     

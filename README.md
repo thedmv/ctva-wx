@@ -153,6 +153,14 @@ http://localhost:8000/docs
 http://localhost:8000/redocs
 ```
 
+### 3. Running Tests
+
+Tests use pytest.
+
+```
+python -m pytest src/tests/tests.py
+```
+
 ## Summary Table
 
 In the top-level directory we keep the files for containerization and environment variables.

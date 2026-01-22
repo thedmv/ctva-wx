@@ -138,9 +138,6 @@ def get_site_stats(
         count_query = count_query.where(WxTableStats.year <= end_year)
 
     total_records = len(db.exec(count_query).all())
-
-    # Execute query
-    results = db.exec(query).all()
     
     if not results:
         raise HTTPException(
@@ -153,6 +150,9 @@ def get_site_stats(
     offset      = (page - 1) * limit
     query       = query.offset(offset).limit(limit) # apply it
 
+    # Execute query
+    results = db.exec(query).all()
+    
     return {
         "data": results,
         "pagination": {
