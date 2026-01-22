@@ -2,7 +2,7 @@ from datetime import datetime, date
 from typing import Union, Optional
 from fastapi import FastAPI, Query, Depends, HTTPException
 from sqlmodel import Session, SQLModel, select
-from .models import WxTable
+from .models import WxTable, WxTableStats
 from .database import get_db
 
 app = FastAPI(
@@ -102,16 +102,18 @@ def get_sites(db: Session = Depends(get_db)):
 @app.get("/api/weather/stats")
 def get_site_stats(
     site_id:    str            = Query(..., description = "Weather station ID"),
-    start_year: Optional[int] = Query(None, description = "Start year (YYYY)"),
-    end_year:   Optional[int] = Query(None, description = "End year (YYYY)"),
+    start_year: Optional[int]  = Query(None, description = "Start year (YYYY)"),
+    end_year:   Optional[int]  = Query(None, description = "End year (YYYY)"),
+    page:       int            = Query(1, ge = 1, description = "Page Number"),
+    limit:      int            = Query(100, ge = 1, le = 1000, description = "Records per page"),
     db:         Session        = Depends(get_db) ):
     """
     Endpoint for the yearly summary statistics for each site.
     
     Inputs:
       site_id: string of the station name
-      start_date: optional, start date requested
-      end_date: optional, end_date requested
+      start_year: optional, start year requested
+      end_year: optional, end year requested
 
     Outputs:
       data: list of weather records
@@ -123,19 +125,40 @@ def get_site_stats(
 
     query = select(WxTableStats).where(WxTableStats.site_id == site_id)
 
-    if start_date:
+    if start_year:
         query = query.where(WxTableStats.year >= start_year)
-    if end_date:
+    if end_year:
         query = query.where(WxTableStats.year <= end_year)
 
-    results = db.exec(query).all()
+    # Pagination
+    count_query = select(WxTableStats).where(WxTableStats.site_id == site_id)
+    if start_year:
+        count_query = count_query.where(WxTableStats.year >= start_year)
+    if end_year:
+        count_query = count_query.where(WxTableStats.year <= end_year)
 
+    total_records = len(db.exec(count_query).all())
+
+    # Execute query
+    results = db.exec(query).all()
+    
     if not results:
         raise HTTPException(
             status_code = 404,
             detail = f"No data found for site_id: {site_id}"
         )
+    
+    # Pagination
+    total_pages = (total_records + limit - 1) // limit # ceiling division
+    offset      = (page - 1) * limit
+    query       = query.offset(offset).limit(limit) # apply it
 
     return {
-        "data": results
+        "data": results,
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total_records": total_records,
+            "total_pages": total_pages
+        }
     }

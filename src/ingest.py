@@ -1,17 +1,24 @@
 import pandas as pd
 import numpy as np
-from config import FILES_WXDATA as FILES
+from config import FILES_WXDATA as FILES, logger
 from functions import read_wxdata
 from models import WxTable, WxTableStats
 from database import engine
 from sqlmodel import Session
-from sqlalchemy import insert # optimal for larger datasets
+from sqlalchemy.dialects.postgresql import insert # optimal for larger datasets
 
 def ingest_wxdata():
     """
     Ingest data files for /code/wx_data. Create the summary statistics table. 
     See config.py for paths
     """
+
+    # Logging initialization and total record counters
+    start_ts = pd.Timestamp.utcnow() # for elapsed time
+    logger.info("Ingest_wxdata start")
+    total_wx_rows = 0
+    total_stats_rows = 0
+
     cols = [k for k in WxTable.model_fields.keys()]
     with Session(engine) as session:
         for f in FILES:
@@ -23,13 +30,46 @@ def ingest_wxdata():
                             tmin_yearly   = ("tmin", "mean"),
                             precip_yearly = ("precip", "sum") )\
                         .reset_index()
-            rows_stats = DFstats.to_dict(orient = "records")
-            # Insert WxTableStats
+            # Match data model with units and data types
+            DFstats["tmax_yearly"]   = DFstats["tmax_yearly"] / 10 # tenths of C --> C
+            DFstats["tmin_yearly"]   = DFstats["tmin_yearly"] / 10 # tenths of C --> C
+            DFstats["precip_yearly"] = DFstats["precip_yearly"] / 100 # tenths of mm --> cm
             DFstats = DFstats.replace(pd.NA, None).rename(columns = {"date": "year"})
-            DFstats["year"] = pd.to_datetime(DFstats["year"], format = "%Y")
-            session.execute(insert(WxTableStats), DFstats.to_dict(orient = "records"))
+            DFstats["year"] = DFstats["year"].astype(int)
+            
+            # Insert WxTableStats
+            stats_records = DFstats.to_dict(orient = "records")
+            if stats_records: # non-empty
+                ins_stats = insert(WxTableStats)\
+                            .values(stats_records)\
+                            .on_conflict_do_nothing(
+                                index_elements = ["site_id", "year"]
+                            )
+                session.execute(ins_stats)
+                total_stats_rows += len(stats_records)
             
             # Insert WxTable
             DF = DF.replace(pd.NA, None)
-            session.execute(insert(WxTable), DF.to_dict(orient = "records"))
+            wx_records = DF.to_dict(orient = "records")
+            if wx_records:
+                ins_wx = insert(WxTable)\
+                        .values(wx_records)\
+                        .on_conflict_do_nothing(
+                            index_elements = ["site_id", "date"]
+                            )
+                session.execute(ins_wx)
+                total_wx_rows += len(wx_records)
+        
             session.commit()
+    
+    # End logging
+    end_ts  = pd.Timestamp.utcnow()
+    elapsed = (end_ts - start_ts).total_seconds()
+    logger.info(
+        f"""
+        ingest_wxdata end 
+        wx_rows:  {total_wx_rows} 
+        stats_rows: {total_stats_rows}
+        Elapsed walltime: {elapsed}
+        """
+    )
