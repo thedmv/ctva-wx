@@ -17,7 +17,7 @@ class WxTable(SQLModel, table = True):
 
 # Summary data model of the statistics of the raw data
 class WxTableStats(SQLModel, table = True):
-    __table_args__ = (UniqueConstraint("site_id", "year", name = "uq_wxtablestats_site_year"))
+    __table_args__ = (UniqueConstraint("site_id", "year", name = "uq_wxtablestats_site_year"), )
     id:            Optional[int]   = Field(default = None, primary_key = True)
     site_id:       str             = Field(description = WXSTATSMETA["site_id"])
     year:          int             = Field(description = WXSTATSMETA["year"])
