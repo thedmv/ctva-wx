@@ -22,8 +22,8 @@ def read_root():
 @app.get("/api/weather")
 def get_weather_data(
     site_id:    str            = Query(..., description = "Weather station ID"),
-    start_date: Optional[date] = Query(None, description = "Start date (YYYYMMDD)"), # FastAPI converts to date obj
-    end_date:   Optional[date] = Query(None, description = "End date (YYYYMMDD)"),
+    start_date: Optional[date] = Query(None, description = "Start date (YYYY-MM-DD)"), # FastAPI converts to date obj
+    end_date:   Optional[date] = Query(None, description = "End date (YYYY-MM-DD)"),
     page:       int            = Query(1, ge = 1, description = "Page Number"),
     limit:      int            = Query(100, ge = 1, le = 1000, description = "Records per page"),
     db:         Session        = Depends(get_db) ):
@@ -123,14 +123,16 @@ def get_site_stats(
       total_pages: total number of pages
     """
 
-    query = select(WxTableStats).where(WxTableStats.site_id == site_id)
+    query = select(WxTableStats) \
+               .where(WxTableStats.site_id == site_id) \
+              .order_by(WxTableStats.year)
 
     if start_year:
         query = query.where(WxTableStats.year >= start_year)
     if end_year:
         query = query.where(WxTableStats.year <= end_year)
 
-    # Pagination
+    # Check that we have records
     count_query = select(WxTableStats).where(WxTableStats.site_id == site_id)
     if start_year:
         count_query = count_query.where(WxTableStats.year >= start_year)
@@ -139,12 +141,12 @@ def get_site_stats(
 
     total_records = len(db.exec(count_query).all())
     
-    if not results:
+    if not total_records:
         raise HTTPException(
             status_code = 404,
             detail = f"No data found for site_id: {site_id}"
         )
-    
+
     # Pagination
     total_pages = (total_records + limit - 1) // limit # ceiling division
     offset      = (page - 1) * limit

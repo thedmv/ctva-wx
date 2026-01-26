@@ -137,20 +137,20 @@ Now that our application is built, we can test the endpoints with the commands b
 curl "http://localhost:8000/api/weather?site_id=USC00111436&page=1&limit=10"
 
 # With date filtering
-curl "http://localhost:8000/api/weather?site_id=USC00111436&start_date=2020-01-01&end_date=2020-12-31&page=1&limit=50"
+curl "http://localhost:8000/api/weather?site_id=USC00111436&?start_date=2020-01-01&?end_date=2020-12-31&?page=1&?limit=50"
 
 # List all sites
 curl "http://localhost:8000/api/sites"
 
 # Get statistics
-curl "http://localhost:8000/api/weather/stats/USC00111436"
+curl "http://localhost:8000/api/weather/stats?site_id=USC00111436"
 ```
 
 FastAPI provides automatic documentation via the URL's below.
 
 ```
 http://localhost:8000/docs
-http://localhost:8000/redocs
+http://localhost:8000/redoc
 ```
 
 ### 3. Running Tests
