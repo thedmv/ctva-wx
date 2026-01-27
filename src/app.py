@@ -69,6 +69,11 @@ def get_weather_data(
 
     # Pagination
     total_pages = (total_records + limit - 1) // limit # ceiling division
+    if page > total_pages: # fail for incorrect page input
+        raise HTTPException(
+            status_code = 404,
+            detail = f"page={page} exceeds total_pages = {total_pages}"
+        )
     offset      = (page - 1) * limit
     query       = query.offset(offset).limit(limit) # apply it
 
@@ -149,6 +154,11 @@ def get_site_stats(
 
     # Pagination
     total_pages = (total_records + limit - 1) // limit # ceiling division
+    if page > total_pages: # fail for incorrect page input
+        raise HTTPException(
+            status_code = 404,
+            detail = f"page={page} exceeds total_pages = {total_pages}"
+        )
     offset      = (page - 1) * limit
     query       = query.offset(offset).limit(limit) # apply it
 
